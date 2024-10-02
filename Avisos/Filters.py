@@ -8,6 +8,14 @@ from django.db.models import Count, Q
 class AvisoFilter(FilterSet):
     propiedad__precio_soles = RangeFilter()
     propiedad__precio_dolares = RangeFilter()
+    propiedad__habitaciones = RangeFilter()
+    propiedad__baños = RangeFilter()
+    propiedad__pisos = RangeFilter()
+    propiedad__ascensores = RangeFilter()
+    propiedad__estacionamientos = RangeFilter()
+    propiedad__area_total = RangeFilter()
+    propiedad__area_construida = RangeFilter()
+    propiedad__mantenimiento = RangeFilter()
     # fecha_actualizacion = DateFromToRangeFilter()
     propiedad__caracteristicas = CharFilter(method="filter_caracteristicas")
 
@@ -16,12 +24,22 @@ class AvisoFilter(FilterSet):
         fields = [
             "propiedad__precio_soles",
             "propiedad__precio_dolares",
-            "estado",
+            "propiedad__habitaciones",
+            "propiedad__baños",
+            "propiedad__ascensores",
+            "propiedad__pisos",
+            "propiedad__estacionamientos",
+            "propiedad__area_total",
+            "propiedad__area_construida",
+            "propiedad__mantenimiento",
             "tipo_operacion",
             "propiedad__tipo_antiguedad",
             "propiedad__subtipo_propiedad",
+            "propiedad__tipo_propiedad",
             "propiedad__caracteristicas",
-            # "fecha_actualizacion",
+            "propiedad__ubicacion__distrito",
+            "propiedad__ubicacion__distrito__provincia",
+            "propiedad__ubicacion__distrito__provincia__departamento",
         ]
 
     def filter_caracteristicas(self, queryset, name, value):

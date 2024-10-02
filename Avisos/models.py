@@ -1,8 +1,10 @@
+from datetime import date
+import datetime
 from django.db import models
 from Propiedades.models import Propiedad
 from Usuarios.models import User
 from django.core.validators import MinLengthValidator, MaxLengthValidator
-
+from django.utils.timezone import now
 from django.utils.text import slugify
 
 

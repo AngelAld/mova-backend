@@ -16,6 +16,7 @@ urlpatterns = [
     path("auth/", include("Usuarios.urls")),
     path("propiedades/", include("Propiedades.urls")),
     path("avisos/", include("Avisos.urls")),
+    path("ubicacion/", include("Ubicacion.urls")),
 ]
 
 

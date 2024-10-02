@@ -27,7 +27,12 @@ class AvisoLista(ListAPIView):
     # filterset_fields = [
 
     # ]
-    ordering_fields = ["fecha_actualizacion", "precio_soles", "precio_dolares"]
+    ordering_fields = [
+        "fecha_actualizacion",
+        "propiedad__precio_soles",
+        "propiedad__precio_dolares",
+    ]
+    ordering = ["-fecha_actualizacion"]
 
 
 class AvisoDetalle(RetrieveAPIView):

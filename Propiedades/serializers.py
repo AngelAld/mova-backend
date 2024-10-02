@@ -1,12 +1,3 @@
-from email.mime import image
-from operator import is_
-from os import read, write
-from re import A
-from tkinter import Image
-
-from django.forms import IntegerField
-
-import Avisos
 from .models import (
     Caracteristica,
     TipoAntiguedad,
@@ -21,6 +12,7 @@ from Avisos.models import EstadoAviso, TipoOperacion, Aviso
 from rest_framework import serializers
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
+from django.utils.timezone import now
 
 # Necesitamos registrar la propiedad por partes
 
@@ -151,6 +143,7 @@ class PropiedadTiposSerializer(serializers.ModelSerializer):
         print("paso 5")
         aviso.tipo_operacion = tipo_operacion
         print("paso 6")
+        # aviso.fecha_actualizacion = now()
         aviso.save()
         print("paso 7")
         return instance
@@ -218,6 +211,11 @@ class PropiedadDatosSerializer(serializers.ModelSerializer):
             "tipo_antiguedad", instance.tipo_antiguedad
         )
         instance.años = validated_data.get("años", instance.años)
+
+        # aviso: Aviso = Aviso.objects.get(propiedad=instance)
+        # aviso.fecha_actualizacion = now()
+        # aviso.save()
+
         instance.save()
 
         instance.caracteristicas.set(caracteristicas)
@@ -318,6 +316,10 @@ class ImagenesPropiedadSerializer(serializers.ModelSerializer):
                 imagen.index = imagen_data.get("index", imagen.index)
                 imagen.cover = imagen_data.get("cover", imagen.cover)
                 imagen.save()
+
+        # aviso: Aviso = Aviso.objects.get(propiedad=instance)
+        # aviso.fecha_actualizacion = now()
+        # aviso.save()
 
         return instance
 
