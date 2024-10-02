@@ -24,7 +24,7 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "backend0mova.pythonanywhere.com"]
 
 
 # Application definition
@@ -183,8 +183,7 @@ SOCIAL_AUTH_PASSWORD = env("SOCIAL_AUTH_PASSWORD")
 CORS_ALLOWED_ORIGINS = [
     "http://localhost",
     "http://localhost:5173",
-    "http://localhost:5174",
-    "https://frontend-mova.vercel.app/",
+    "https://mova-six.vercel.app/",
 ]
 
 SPECTACULAR_SETTINGS = {
