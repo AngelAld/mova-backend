@@ -1,10 +1,7 @@
-from datetime import date
-import datetime
 from django.db import models
 from Propiedades.models import Propiedad
 from Usuarios.models import User
 from django.core.validators import MinLengthValidator, MaxLengthValidator
-from django.utils.timezone import now
 from django.utils.text import slugify
 
 
@@ -83,3 +80,66 @@ class Favorito(models.Model):
         User, on_delete=models.CASCADE, related_name="favoritos"
     )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+
+class Alerta(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="alertas")
+    propiedad_precio_soles_min = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0
+    )
+    propiedad_precio_soles_max = models.DecimalField(
+        max_digits=12, decimal_places=2, default=1000000
+    )
+    propiedad_precio_dolares_min = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    propiedad_precio_dolares_max = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    propiedad_habitaciones_min = models.IntegerField(null=True, blank=True)
+    propiedad_habitaciones_max = models.IntegerField(null=True, blank=True)
+    propiedad_banos_min = models.IntegerField(null=True, blank=True)
+    propiedad_banos_max = models.IntegerField(null=True, blank=True)
+    propiedad_ascensores_min = models.IntegerField(null=True, blank=True)
+    propiedad_ascensores_max = models.IntegerField(null=True, blank=True)
+    propiedad_pisos_min = models.IntegerField(null=True, blank=True)
+    propiedad_pisos_max = models.IntegerField(null=True, blank=True)
+    propiedad_estacionamientos_min = models.IntegerField(null=True, blank=True)
+    propiedad_estacionamientos_max = models.IntegerField(null=True, blank=True)
+    propiedad_area_total_min = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    propiedad_area_total_max = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    propiedad_area_construida_min = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    propiedad_area_construida_max = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    propiedad_mantenimiento_min = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    propiedad_mantenimiento_max = models.DecimalField(
+        max_digits=12, decimal_places=2, null=True, blank=True
+    )
+    tipo_operacion = models.ForeignKey(TipoOperacion, on_delete=models.CASCADE)
+    propiedad_tipo_antiguedad = models.CharField(max_length=50, null=True, blank=True)
+    propiedad_subtipo_propiedad = models.CharField(max_length=50, null=True, blank=True)
+    propiedad_tipo_propiedad = models.CharField(max_length=50, null=True, blank=True)
+    propiedad_ubicacion_distrito = models.CharField(
+        max_length=50, null=True, blank=True
+    )
+    propiedad_ubicacion_distrito_provincia = models.CharField(
+        max_length=50, null=True, blank=True
+    )
+    propiedad_ubicacion_distrito_provincia_departamento = models.CharField(
+        max_length=50, null=True, blank=True
+    )
+    propiedad_caracteristicas = models.JSONField(default=list, blank=True)
+
+
+class AvisoAlerta(models.Model):
+    alerta = models.ForeignKey(Alerta, on_delete=models.CASCADE, related_name="avisos")
+    aviso = models.ForeignKey(Aviso, on_delete=models.CASCADE, related_name="alertas")

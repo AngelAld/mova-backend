@@ -1,11 +1,17 @@
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 
 from Avisos.Filters import AvisoFilter
-from .models import Aviso
-from .serializers import AvisoListaSerializer, AvisoDetalleSerializer
+from .models import Aviso, Alerta
+from .serializers import (
+    AvisoListaSerializer,
+    AvisoDetalleSerializer,
+    AlertaSerializer,
+    AlertaAvisoListSerializer,
+)
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import IsAuthenticated
 
 
 class AvisoLista(ListAPIView):
@@ -39,3 +45,36 @@ class AvisoDetalle(RetrieveAPIView):
     queryset = Aviso.objects.all()
     serializer_class = AvisoDetalleSerializer
     lookup_field = "slug"
+
+
+class AlertaLista(ListAPIView):
+    queryset = Alerta.objects.all()
+    serializer_class = AlertaSerializer
+    pagination_class = LimitOffsetPagination
+    filter_backends = [OrderingFilter]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.request.user.alertas.all()
+
+
+class AlertaCreate(CreateAPIView):
+    serializer_class = AlertaSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class AvisoAlertaList(RetrieveAPIView):
+    queryset = Alerta.objects.all()
+    serializer_class = AlertaAvisoListSerializer
+    pagination_class = LimitOffsetPagination
+    filter_backends = [OrderingFilter]
+    ordering_fields = [
+        "fecha_creacion",
+    ]
+    ordering = ["-fecha_creacion"]
+
+    def get_queryset(self):
+        return self.request.user.alertas.all()

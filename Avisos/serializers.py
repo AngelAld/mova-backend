@@ -1,9 +1,10 @@
+from os import read
 from pyexpat import model
-
+from django.db.transaction import atomic
 from attrs import field
 from Propiedades.models import UbicacionPropiedad
 from Usuarios.models import User
-from .models import Aviso, EstadoAviso, TipoOperacion, Favorito
+from .models import Aviso, EstadoAviso, TipoOperacion, Favorito, Alerta, AvisoAlerta
 from Propiedades.models import ImagenPropiedad, PlanoPropiedad, Propiedad
 from rest_framework import serializers
 
@@ -230,3 +231,71 @@ class AvisoDetalleSerializer(serializers.ModelSerializer):
             "planos",
             "ubicacion",
         ]
+
+
+class AlertaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Alerta
+        fields = "__all__"
+        read_only_fields = ["user"]
+
+    def validate(self, attrs):
+        if attrs["propiedad_precio_soles_min"] > attrs["propiedad_precio_soles_max"]:
+            raise serializers.ValidationError(
+                "El precio mínimo no puede ser mayor al precio máximo"
+            )
+        if (
+            attrs["propiedad_precio_dolares_min"]
+            > attrs["propiedad_precio_dolares_max"]
+        ):
+            raise serializers.ValidationError(
+                "El precio mínimo no puede ser mayor al precio máximo"
+            )
+        if attrs["propiedad_habitaciones_min"] > attrs["propiedad_habitaciones_max"]:
+            raise serializers.ValidationError(
+                "El número mínimo de habitaciones no puede ser mayor al número máximo de habitaciones"
+            )
+        if attrs["propiedad_banos_min"] > attrs["propiedad_banos_max"]:
+            raise serializers.ValidationError(
+                "El número mínimo de baños no puede ser mayor al número máximo de baños"
+            )
+        if attrs["propiedad_ascensores_min"] > attrs["propiedad_ascensores_max"]:
+            raise serializers.ValidationError(
+                "El número mínimo de ascensores no puede ser mayor al número máximo de ascensores"
+            )
+        if attrs["propiedad_pisos_min"] > attrs["propiedad_pisos_max"]:
+            raise serializers.ValidationError(
+                "El número mínimo de pisos no puede ser mayor al número máximo de pisos"
+            )
+        if (
+            attrs["propiedad_estacionamientos_min"]
+            > attrs["propiedad_estacionamientos_max"]
+        ):
+            raise serializers.ValidationError(
+                "El número mínimo de estacionamientos no puede ser mayor al número máximo de estacionamientos"
+            )
+        if attrs["propiedad_area_total_min"] > attrs["propiedad_area_total_max"]:
+            raise serializers.ValidationError(
+                "El área total mínima no puede ser mayor al área total máxima"
+            )
+        if (
+            attrs["propiedad_area_construida_min"]
+            > attrs["propiedad_area_construida_max"]
+        ):
+            raise serializers.ValidationError(
+                "El área construida mínima no puede ser mayor al área construida máxima"
+            )
+        if attrs["propiedad_mantenimiento_min"] > attrs["propiedad_mantenimiento_max"]:
+            raise serializers.ValidationError(
+                "El mantenimiento mínimo no puede ser mayor al mantenimiento máximo"
+            )
+        return super().validate(attrs)
+
+
+class AlertaAvisoListSerializer(serializers.ModelSerializer):
+    avisos = AvisoListaSerializer(many=True, source="avisos")
+
+    class Meta:
+        model = Alerta
+        fields = ["id", "avisos"]
