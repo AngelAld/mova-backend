@@ -294,7 +294,9 @@ class AlertaSerializer(serializers.ModelSerializer):
 
 
 class AlertaAvisoListSerializer(serializers.ModelSerializer):
-    avisos = AvisoListaSerializer(many=True, source="avisos")
+    avisos = AvisoListaSerializer(
+        many=True,
+    )
 
     class Meta:
         model = Alerta
