@@ -256,7 +256,7 @@ class AlertaSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "El número mínimo de habitaciones no puede ser mayor al número máximo de habitaciones"
             )
-        if attrs["propiedad_banos_min"] > attrs["propiedad_banos_max"]:
+        if attrs["propiedad_baños_min"] > attrs["propiedad_baños_max"]:
             raise serializers.ValidationError(
                 "El número mínimo de baños no puede ser mayor al número máximo de baños"
             )

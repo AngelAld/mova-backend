@@ -1,3 +1,4 @@
+from operator import truediv
 from django.db import models
 from Propiedades.models import Propiedad
 from Usuarios.models import User
@@ -98,8 +99,8 @@ class Alerta(models.Model):
     )
     propiedad_habitaciones_min = models.IntegerField(null=True, blank=True)
     propiedad_habitaciones_max = models.IntegerField(null=True, blank=True)
-    propiedad_banos_min = models.IntegerField(null=True, blank=True)
-    propiedad_banos_max = models.IntegerField(null=True, blank=True)
+    propiedad_baños_min = models.IntegerField(null=True, blank=True)
+    propiedad_baños_max = models.IntegerField(null=True, blank=True)
     propiedad_ascensores_min = models.IntegerField(null=True, blank=True)
     propiedad_ascensores_max = models.IntegerField(null=True, blank=True)
     propiedad_pisos_min = models.IntegerField(null=True, blank=True)
@@ -124,7 +125,9 @@ class Alerta(models.Model):
     propiedad_mantenimiento_max = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True
     )
-    tipo_operacion = models.ForeignKey(TipoOperacion, on_delete=models.CASCADE)
+    tipo_operacion = models.ForeignKey(
+        TipoOperacion, on_delete=models.CASCADE, blank=True, null=True
+    )
     propiedad_tipo_antiguedad = models.CharField(max_length=50, null=True, blank=True)
     propiedad_subtipo_propiedad = models.CharField(max_length=50, null=True, blank=True)
     propiedad_tipo_propiedad = models.CharField(max_length=50, null=True, blank=True)

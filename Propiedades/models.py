@@ -41,32 +41,35 @@ class Propiedad(models.Model):
     dueño = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="propiedades"
     )
-    habitaciones = models.PositiveIntegerField(blank=True, null=True)
-    baños = models.PositiveIntegerField(blank=True, null=True)
-    pisos = models.PositiveIntegerField(blank=True, null=True)
-    ascensores = models.PositiveIntegerField(blank=True, null=True)
-    estacionamientos = models.PositiveIntegerField(blank=True, null=True)
+    habitaciones = models.PositiveIntegerField(blank=True, null=True, default=0)
+    baños = models.PositiveIntegerField(blank=True, null=True, default=0)
+    pisos = models.PositiveIntegerField(blank=True, null=True, default=1)
+    ascensores = models.PositiveIntegerField(blank=True, null=True, default=0)
+    estacionamientos = models.PositiveIntegerField(blank=True, null=True, default=0)
     area_construida = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True
+        max_digits=10, decimal_places=2, blank=True, null=True, default=0
     )
     area_total = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True
+        max_digits=10, decimal_places=2, blank=True, null=True, default=0
     )
     precio_soles = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True
+        max_digits=10, decimal_places=2, blank=True, null=True, default=0
     )
     precio_dolares = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True
+        max_digits=10, decimal_places=2, blank=True, null=True, default=0
     )
     mantenimiento = models.DecimalField(
-        max_digits=10, decimal_places=2, blank=True, null=True
+        max_digits=10, decimal_places=2, blank=True, null=True, default=0
     )
     tipo_antiguedad = models.ForeignKey(
         TipoAntiguedad, on_delete=models.PROTECT, blank=True, null=True
     )
-    años = models.PositiveIntegerField(blank=True, null=True)
+    años = models.PositiveIntegerField(blank=True, null=True, default=0)
     tipo_propiedad = models.ForeignKey(
-        TipoPropiedad, on_delete=models.PROTECT, blank=True, null=True
+        TipoPropiedad,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
     )
     subtipo_propiedad = models.ForeignKey(
         SubTipoPropiedad, on_delete=models.PROTECT, blank=True, null=True
