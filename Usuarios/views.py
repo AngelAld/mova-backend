@@ -1,4 +1,3 @@
-import re
 from Usuarios.models import OneTimePassword, User
 from Usuarios.utils import enviarCorreoVerificacion
 from .serializers import (

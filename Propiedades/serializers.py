@@ -1,3 +1,4 @@
+from Avisos.tasks import CompareAlertaAvisoPropiedad
 from .models import (
     Caracteristica,
     TipoAntiguedad,
@@ -114,38 +115,30 @@ class PropiedadTiposSerializer(serializers.ModelSerializer):
             **validated_data,
         )
         estado_aviso, _ = EstadoAviso.objects.get_or_create(nombre="En Borrador")
-        Aviso.objects.create(
+        aviso = Aviso.objects.create(
             propiedad=propiedad,
             tipo_operacion=tipo_operacion,
             estado=estado_aviso,
         )
+        CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
         return propiedad
 
     @atomic
     def update(self, instance, validated_data):
-
         tipo_operacion: TipoOperacion = validated_data.pop("aviso").pop(
             "tipo_operacion"
         )
-        print("paso 1")
         instance.tipo_propiedad = validated_data.get(
             "tipo_propiedad", instance.tipo_propiedad
         )
-        print("paso 2")
         instance.subtipo_propiedad = validated_data.get(
             "subtipo_propiedad", instance.subtipo_propiedad
         )
-        print("paso 3")
-
         instance.save()
-        print("paso 4")
         aviso: Aviso = Aviso.objects.get(propiedad=instance)
-        print("paso 5")
         aviso.tipo_operacion = tipo_operacion
-        print("paso 6")
-        # aviso.fecha_actualizacion = now()
         aviso.save()
-        print("paso 7")
+        CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
         return instance
 
 
@@ -212,13 +205,14 @@ class PropiedadDatosSerializer(serializers.ModelSerializer):
         )
         instance.años = validated_data.get("años", instance.años)
 
-        # aviso: Aviso = Aviso.objects.get(propiedad=instance)
+        aviso: Aviso = Aviso.objects.get(propiedad=instance)
         # aviso.fecha_actualizacion = now()
         # aviso.save()
 
         instance.save()
 
         instance.caracteristicas.set(caracteristicas)
+        CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
         return instance
 
 
@@ -317,10 +311,10 @@ class ImagenesPropiedadSerializer(serializers.ModelSerializer):
                 imagen.cover = imagen_data.get("cover", imagen.cover)
                 imagen.save()
 
-        # aviso: Aviso = Aviso.objects.get(propiedad=instance)
+        aviso: Aviso = Aviso.objects.get(propiedad=instance)
         # aviso.fecha_actualizacion = now()
         # aviso.save()
-
+        CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
         return instance
 
         # for plano_data in planos:

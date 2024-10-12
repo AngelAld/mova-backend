@@ -1,6 +1,11 @@
-from operator import truediv
 from django.db import models
-from Propiedades.models import Propiedad
+from Propiedades.models import (
+    Propiedad,
+    SubTipoPropiedad,
+    TipoAntiguedad,
+    TipoPropiedad,
+)
+from Ubicacion.models import Departamento, Distrito, Provincia
 from Usuarios.models import User
 from django.core.validators import MinLengthValidator, MaxLengthValidator
 from django.utils.text import slugify
@@ -92,53 +97,59 @@ class Alerta(models.Model):
         max_digits=12, decimal_places=2, default=1000000
     )
     propiedad_precio_dolares_min = models.DecimalField(
-        max_digits=12, decimal_places=2, null=True, blank=True
+        max_digits=12, decimal_places=2, default=0
     )
     propiedad_precio_dolares_max = models.DecimalField(
-        max_digits=12, decimal_places=2, null=True, blank=True
+        max_digits=12, decimal_places=2, default=1000000
     )
-    propiedad_habitaciones_min = models.IntegerField(null=True, blank=True)
-    propiedad_habitaciones_max = models.IntegerField(null=True, blank=True)
-    propiedad_baños_min = models.IntegerField(null=True, blank=True)
-    propiedad_baños_max = models.IntegerField(null=True, blank=True)
-    propiedad_ascensores_min = models.IntegerField(null=True, blank=True)
-    propiedad_ascensores_max = models.IntegerField(null=True, blank=True)
-    propiedad_pisos_min = models.IntegerField(null=True, blank=True)
-    propiedad_pisos_max = models.IntegerField(null=True, blank=True)
-    propiedad_estacionamientos_min = models.IntegerField(null=True, blank=True)
-    propiedad_estacionamientos_max = models.IntegerField(null=True, blank=True)
+    propiedad_habitaciones_min = models.IntegerField(default=0)
+    propiedad_habitaciones_max = models.IntegerField(default=30)
+    propiedad_baños_min = models.IntegerField(default=0)
+    propiedad_baños_max = models.IntegerField(default=30)
+    propiedad_ascensores_min = models.IntegerField(default=0)
+    propiedad_ascensores_max = models.IntegerField(default=10)
+    propiedad_pisos_min = models.IntegerField(default=0)
+    propiedad_pisos_max = models.IntegerField(default=100)
+    propiedad_estacionamientos_min = models.IntegerField(default=0)
+    propiedad_estacionamientos_max = models.IntegerField(default=30)
     propiedad_area_total_min = models.DecimalField(
-        max_digits=12, decimal_places=2, null=True, blank=True
+        max_digits=12, decimal_places=2, default=0
     )
     propiedad_area_total_max = models.DecimalField(
-        max_digits=12, decimal_places=2, null=True, blank=True
+        max_digits=12, decimal_places=2, default=2000
     )
     propiedad_area_construida_min = models.DecimalField(
-        max_digits=12, decimal_places=2, null=True, blank=True
+        max_digits=12, decimal_places=2, default=0
     )
     propiedad_area_construida_max = models.DecimalField(
-        max_digits=12, decimal_places=2, null=True, blank=True
+        max_digits=12, decimal_places=2, default=2000
     )
     propiedad_mantenimiento_min = models.DecimalField(
-        max_digits=12, decimal_places=2, null=True, blank=True
+        max_digits=12, decimal_places=2, default=0
     )
     propiedad_mantenimiento_max = models.DecimalField(
-        max_digits=12, decimal_places=2, null=True, blank=True
+        max_digits=12, decimal_places=2, default=10000
     )
     tipo_operacion = models.ForeignKey(
         TipoOperacion, on_delete=models.CASCADE, blank=True, null=True
     )
-    propiedad_tipo_antiguedad = models.CharField(max_length=50, null=True, blank=True)
-    propiedad_subtipo_propiedad = models.CharField(max_length=50, null=True, blank=True)
-    propiedad_tipo_propiedad = models.CharField(max_length=50, null=True, blank=True)
-    propiedad_ubicacion_distrito = models.CharField(
-        max_length=50, null=True, blank=True
+    propiedad_tipo_antiguedad = models.ForeignKey(
+        TipoAntiguedad, on_delete=models.CASCADE, blank=True, null=True
     )
-    propiedad_ubicacion_distrito_provincia = models.CharField(
-        max_length=50, null=True, blank=True
+    propiedad_subtipo_propiedad = models.ForeignKey(
+        SubTipoPropiedad, on_delete=models.CASCADE, null=True, blank=True
     )
-    propiedad_ubicacion_distrito_provincia_departamento = models.CharField(
-        max_length=50, null=True, blank=True
+    propiedad_tipo_propiedad = models.ForeignKey(
+        TipoPropiedad, null=True, blank=True, on_delete=models.CASCADE
+    )
+    propiedad_ubicacion_distrito = models.ForeignKey(
+        Distrito, null=True, blank=True, on_delete=models.CASCADE
+    )
+    propiedad_ubicacion_distrito_provincia = models.ForeignKey(
+        Provincia, null=True, blank=True, on_delete=models.CASCADE
+    )
+    propiedad_ubicacion_distrito_provincia_departamento = models.ForeignKey(
+        Departamento, null=True, blank=True, on_delete=models.CASCADE
     )
     propiedad_caracteristicas = models.JSONField(default=list, blank=True)
 

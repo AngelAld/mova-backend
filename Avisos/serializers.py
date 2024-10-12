@@ -1,19 +1,19 @@
-from os import read
-from pyexpat import model
-from django.db.transaction import atomic
-from attrs import field
 from Propiedades.models import UbicacionPropiedad
 from Usuarios.models import User
-from .models import Aviso, EstadoAviso, TipoOperacion, Favorito, Alerta, AvisoAlerta
-from Propiedades.models import ImagenPropiedad, PlanoPropiedad, Propiedad
+from Propiedades.models import ImagenPropiedad, PlanoPropiedad
 from rest_framework import serializers
+from .models import Aviso, Alerta
 
 
 class AvisoListaSerializer(serializers.ModelSerializer):
 
-    direccion = serializers.CharField(source="propiedad.ubicacion.calle_numero")
+    direccion = serializers.CharField(
+        source="propiedad.ubicacion.calle_numero", allow_null=True
+    )
 
-    distrito = serializers.CharField(source="propiedad.ubicacion.distrito.nombre")
+    distrito = serializers.CharField(
+        source="propiedad.ubicacion.distrito.nombre", allow_null=True
+    )
 
     estado = serializers.CharField(source="estado.nombre")
     tipo_operacion = serializers.CharField(
