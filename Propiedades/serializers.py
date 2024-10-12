@@ -120,7 +120,7 @@ class PropiedadTiposSerializer(serializers.ModelSerializer):
             tipo_operacion=tipo_operacion,
             estado=estado_aviso,
         )
-        CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
+        # CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
         return propiedad
 
     @atomic
@@ -138,7 +138,7 @@ class PropiedadTiposSerializer(serializers.ModelSerializer):
         aviso: Aviso = Aviso.objects.get(propiedad=instance)
         aviso.tipo_operacion = tipo_operacion
         aviso.save()
-        CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
+        # CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
         return instance
 
 
@@ -212,7 +212,7 @@ class PropiedadDatosSerializer(serializers.ModelSerializer):
         instance.save()
 
         instance.caracteristicas.set(caracteristicas)
-        CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
+        # CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
         return instance
 
 
@@ -247,45 +247,33 @@ class ImagenPropiedadSerializer(serializers.ModelSerializer):
         }
 
 
-# class PlanoPropiedadSerializer(serializers.ModelSerializer):
-#     is_new = serializers.BooleanField(default=False)
-#     plano_url = serializers.URLField(required=False, source="plano.url", read_only=True)
-#     imagen = serializers.bas
+class PlanoPropiedadSerializer(serializers.ModelSerializer):
+    is_new = serializers.BooleanField(default=False)
+    plano_url = serializers.URLField(required=False, source="plano.url", read_only=True)
+    plano = Base64ImageField(required=False, write_only=True)
 
-#     class Meta:
-#         model = PlanoPropiedad
-#         fields = ["id", "plano", "plano_url", "titulo", "is_new"]
-#         extra_kwargs = {
-#             "plano": {"required": False, "write_only": True},
-#             "titulo": {"required": False},
-#             "id": {"read_only": False, "required": False},
-#         }
-
-#         def validate(self, attrs):
-#             if not attrs.get("plano") and not attrs.get("is_new"):
-#                 raise serializers.ValidationError("Plano no puede ser vacío")
-#             return attrs
+    class Meta:
+        model = PlanoPropiedad
+        fields = ["id", "plano", "plano_url", "titulo", "is_new"]
+        extra_kwargs = {
+            "titulo": {"required": False},
+            "id": {"read_only": False, "required": False},
+        }
 
 
 class ImagenesPropiedadSerializer(serializers.ModelSerializer):
     imagenes_data = ImagenPropiedadSerializer(many=True, source="imagenes")
-    # planos_data = PlanoPropiedadSerializer(many=True, source="planos")
+    planos_data = PlanoPropiedadSerializer(many=True, source="planos")
 
     class Meta:
         model = Propiedad
         fields = ["id", "imagenes_data"]
 
-    def validate(self, attrs):
-        print("####################")
-        print(attrs)
-        print("####################")
-        return super().validate(attrs)
-
     @atomic
     def update(self, instance, validated_data):
         imagenes = validated_data.pop("imagenes")
 
-        # planos = validated_data.pop("planos")
+        planos = validated_data.pop("planos")
 
         # Get the IDs of the images included in the request
         new_image_ids = [
@@ -294,9 +282,19 @@ class ImagenesPropiedadSerializer(serializers.ModelSerializer):
             if not img_data.get("is_new", False)
         ]
 
+        new_plano_ids = [
+            plano_data.get("id")
+            for plano_data in planos
+            if not plano_data.get("is_new", False)
+        ]
+
         # Delete images that are not included in the request
         ImagenPropiedad.objects.filter(propiedad=instance).exclude(
             id__in=new_image_ids
+        ).delete()
+
+        PlanoPropiedad.objects.filter(propiedad=instance).exclude(
+            id__in=new_plano_ids
         ).delete()
 
         for imagen_data in imagenes:
@@ -311,18 +309,18 @@ class ImagenesPropiedadSerializer(serializers.ModelSerializer):
                 imagen.cover = imagen_data.get("cover", imagen.cover)
                 imagen.save()
 
+        for plano_data in planos:
+            is_new = plano_data.pop("is_new", False)
+            if is_new:
+                plano_data.pop("id")
+                PlanoPropiedad.objects.create(propiedad=instance, **plano_data)
+            else:
+                plano = PlanoPropiedad.objects.get(id=plano_data["id"])
+                plano.titulo = plano_data.get("titulo", plano.titulo)
+                plano.save()
+
         aviso: Aviso = Aviso.objects.get(propiedad=instance)
         # aviso.fecha_actualizacion = now()
         # aviso.save()
-        CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
+        # CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
         return instance
-
-        # for plano_data in planos:
-        #     is_new = plano_data.pop("is_new")
-        #     if is_new:
-        #         PlanoPropiedad.objects.create(propiedad=instance, **plano_data)
-        #     else:
-        #         plano = PlanoPropiedad.objects.get(id=plano_data["id"])
-        #         plano.titulo = plano_data.get("titulo", plano.titulo)
-        #         plano.save()
-        # return instance
