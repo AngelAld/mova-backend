@@ -8,6 +8,7 @@ from .serializers import (
     CaracteristicaSerializer,
     TipoAntiguedadSerializer,
     ImagenesPropiedadSerializer,
+    UbicacionPropiedadSerializer,
 )
 from .models import (
     Propiedad,
@@ -116,6 +117,16 @@ class ImagenesPropiedadViewSet(viewsets.ModelViewSet):
     serializer_class = ImagenesPropiedadSerializer
     permission_classes = [IsAuthenticated, IsDueño]
     # parser_classes = [MultiPartParser, FormParser, JSONParser]
+    http_method_names = [
+        "get",
+        "patch",
+    ]
+
+
+class UbicacionPropiedadViewSet(viewsets.ModelViewSet):
+    queryset = Propiedad.objects.all()
+    serializer_class = UbicacionPropiedadSerializer
+    permission_classes = [IsAuthenticated, IsDueño]
     http_method_names = [
         "get",
         "patch",

@@ -1,4 +1,9 @@
+from operator import truediv
+from os import read
+import re
+from typing import Required
 from Avisos.tasks import CompareAlertaAvisoPropiedad
+from Ubicacion.models import Departamento, Provincia
 from .models import (
     Caracteristica,
     TipoAntiguedad,
@@ -267,7 +272,7 @@ class ImagenesPropiedadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Propiedad
-        fields = ["id", "imagenes_data"]
+        fields = ["id", "imagenes_data", "planos_data"]
 
     @atomic
     def update(self, instance, validated_data):
@@ -275,7 +280,6 @@ class ImagenesPropiedadSerializer(serializers.ModelSerializer):
 
         planos = validated_data.pop("planos")
 
-        # Get the IDs of the images included in the request
         new_image_ids = [
             img_data.get("id")
             for img_data in imagenes
@@ -320,6 +324,67 @@ class ImagenesPropiedadSerializer(serializers.ModelSerializer):
                 plano.save()
 
         aviso: Aviso = Aviso.objects.get(propiedad=instance)
+        # aviso.fecha_actualizacion = now()
+        # aviso.save()
+        # CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
+        return instance
+
+
+class UbicacionSerializer(serializers.ModelSerializer):
+    departamento = serializers.PrimaryKeyRelatedField(
+        queryset=Departamento.objects.all(),
+        source="distrito.provincia.departamento",
+    )
+    provincia = serializers.PrimaryKeyRelatedField(
+        queryset=Provincia.objects.all(),
+        source="distrito.provincia",
+    )
+
+    class Meta:
+        model = UbicacionPropiedad
+        fields = [
+            "calle_numero",
+            "latitud",
+            "longitud",
+            "departamento",
+            "provincia",
+            "distrito",
+        ]
+        read_only_fields = ["departamento", "provincia"]
+
+    def validate(self, data):
+        print(data)
+        if data.get("distrito") is None:
+            raise serializers.ValidationError("Debe seleccionar un distrito")
+        if data.get("calle_numero") is None:
+            raise serializers.ValidationError("Debe ingresar una dirección")
+        if data.get("latitud") is None:
+            raise serializers.ValidationError("Debe ingresar una latitud")
+        if data.get("longitud") is None:
+            raise serializers.ValidationError("Debe ingresar una longitud")
+        return data
+
+
+class UbicacionPropiedadSerializer(serializers.ModelSerializer):
+    ubicacion = UbicacionSerializer()
+
+    class Meta:
+        model = Propiedad
+        fields = ["id", "ubicacion"]
+
+    @atomic
+    def update(self, instance, validated_data):
+        ubicacion_data = validated_data.pop("ubicacion")
+        UbicacionPropiedad.objects.update_or_create(
+            propiedad=instance,
+            defaults={
+                "distrito": ubicacion_data.get("distrito"),
+                "calle_numero": ubicacion_data.get("calle_numero"),
+                "latitud": ubicacion_data.get("latitud"),
+                "longitud": ubicacion_data.get("longitud"),
+            },
+        )
+        # aviso: Aviso = Aviso.objects.get(propiedad=instance)
         # aviso.fecha_actualizacion = now()
         # aviso.save()
         # CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
