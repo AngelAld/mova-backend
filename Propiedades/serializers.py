@@ -1,8 +1,4 @@
-from operator import truediv
-from os import read
-import re
-from typing import Required
-from Avisos.tasks import CompareAlertaAvisoPropiedad
+# from Avisos.tasks import CompareAlertaAvisoPropiedad
 from Ubicacion.models import Departamento, Provincia
 from .models import (
     Caracteristica,
