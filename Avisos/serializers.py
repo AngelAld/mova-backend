@@ -5,6 +5,15 @@ from rest_framework import serializers
 from .models import Aviso, Alerta
 
 
+class UbicacionSerializer(serializers.ModelSerializer):
+    distrito = serializers.CharField(source="distrito.nombre")
+    provincia = serializers.CharField(source="distrito.provincia.nombre")
+
+    class Meta:
+        model = UbicacionPropiedad
+        fields = ["provincia", "distrito", "calle_numero", "latitud", "longitud"]
+
+
 class AvisoListaSerializer(serializers.ModelSerializer):
 
     direccion = serializers.CharField(
@@ -14,6 +23,8 @@ class AvisoListaSerializer(serializers.ModelSerializer):
     distrito = serializers.CharField(
         source="propiedad.ubicacion.distrito.nombre", allow_null=True
     )
+
+    ubicacion = UbicacionSerializer(source="propiedad.ubicacion", read_only=True)
 
     estado = serializers.CharField(source="estado.nombre")
     tipo_operacion = serializers.CharField(
@@ -74,6 +85,7 @@ class AvisoListaSerializer(serializers.ModelSerializer):
             "años",
             "subtipo_propiedad",
             "caracteristicas",
+            "ubicacion",
         ]
 
 
@@ -118,15 +130,6 @@ class PlanoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlanoPropiedad
         fields = ["plano", "titulo"]
-
-
-class UbicacionSerializer(serializers.ModelSerializer):
-    distrito = serializers.CharField(source="distrito.nombre")
-    provincia = serializers.CharField(source="distrito.provincia.nombre")
-
-    class Meta:
-        model = UbicacionPropiedad
-        fields = ["provincia", "distrito", "calle_numero", "latitud", "longitud"]
 
 
 class AvisoDetalleSerializer(serializers.ModelSerializer):
