@@ -49,8 +49,9 @@ class Aviso(models.Model):
         return self.favoritos.count()
 
     def save(self, **kwargs):
-        if not self.slug:
-            slug = slugify(self.titulo or "propiedad")
+        slug_base = slugify(self.titulo or "propiedad")
+        if not self.slug or self.slug != slug_base:
+            slug = slug_base
             original_slug = slug
             counter = 1
             while Aviso.objects.filter(slug=slug).exists():
@@ -60,19 +61,19 @@ class Aviso(models.Model):
 
         super(Aviso, self).save(**kwargs)
 
-    def update(self, **kwargs):
-        previous_slug = self.slug
-        slug = slugify(self.titulo or "propiedad")
+    # def update(self, **kwargs):
+    #     previous_slug = self.slug
+    #     slug = slugify(self.titulo or "propiedad")
 
-        if previous_slug != slug:
-            original_slug = slug
-            counter = 1
-            while Aviso.objects.filter(slug=slug).exists():
-                slug = f"{original_slug}-{counter}"
-                counter += 1
-            self.slug = slug
+    #     if previous_slug != slug:
+    #         original_slug = slug
+    #         counter = 1
+    #         while Aviso.objects.filter(slug=slug).exists():
+    #             slug = f"{original_slug}-{counter}"
+    #             counter += 1
+    #         self.slug = slug
 
-        super(Aviso, self).update(**kwargs)
+    #     super(Aviso, self).update(**kwargs)
 
     def __str__(self):
         if self.titulo:

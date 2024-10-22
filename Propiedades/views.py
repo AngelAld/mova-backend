@@ -8,6 +8,7 @@ from .serializers import (
     CaracteristicaSerializer,
     TipoAntiguedadSerializer,
     ImagenesPropiedadSerializer,
+    TituloDescripcionPropiedadSerializer,
     UbicacionPropiedadSerializer,
 )
 from .models import (
@@ -17,10 +18,10 @@ from .models import (
     TipoAntiguedad,
     Caracteristica,
 )
-from Avisos.models import TipoOperacion
+from Avisos.models import Aviso, TipoOperacion
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .Permisions import IsDueño, maxPropiedades
+from .Permisions import IsDueño, IsDueñoAviso, maxPropiedades
 from rest_framework.generics import ListAPIView, DestroyAPIView
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -133,6 +134,16 @@ class UbicacionPropiedadViewSet(viewsets.ModelViewSet):
     queryset = Propiedad.objects.all()
     serializer_class = UbicacionPropiedadSerializer
     permission_classes = [IsAuthenticated, IsDueño]
+    http_method_names = [
+        "get",
+        "patch",
+    ]
+
+
+class TituloDescripcionPropiedadViewSet(viewsets.ModelViewSet):
+    queryset = Aviso.objects.all()
+    serializer_class = TituloDescripcionPropiedadSerializer
+    permission_classes = [IsAuthenticated, IsDueñoAviso]
     http_method_names = [
         "get",
         "patch",

@@ -15,6 +15,7 @@ from rest_framework import serializers
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
 from django.utils.timezone import now
+from django.utils.text import slugify
 
 # Necesitamos registrar la propiedad por partes
 
@@ -384,4 +385,17 @@ class UbicacionPropiedadSerializer(serializers.ModelSerializer):
         # aviso.fecha_actualizacion = now()
         # aviso.save()
         # CompareAlertaAvisoPropiedad.delay_on_commit(aviso.pk)
+        return instance
+
+
+class TituloDescripcionPropiedadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Aviso
+        fields = ["id", "titulo", "descripcion"]
+
+    @atomic
+    def update(self, instance, validated_data):
+        instance.titulo = validated_data.get("titulo", instance.titulo)
+        instance.descripcion = validated_data.get("descripcion", instance.descripcion)
+        instance.save()
         return instance

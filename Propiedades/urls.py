@@ -13,6 +13,7 @@ from .views import (
     TipoAntiguedadListView,
     ImagenesPropiedadViewSet,
     UbicacionPropiedadViewSet,
+    TituloDescripcionPropiedadViewSet,
 )
 
 router = DefaultRouter()
@@ -20,6 +21,11 @@ router.register(r"tipos", PropiedadTiposViewSet, basename="tipos")
 router.register(r"datos", PropiedadDatosViewSet, basename="datos")
 router.register(r"imagenes", ImagenesPropiedadViewSet, basename="imagenes")
 router.register(r"ubicacion", UbicacionPropiedadViewSet, basename="ubicacion")
+router.register(
+    r"titulo-descripcion",
+    TituloDescripcionPropiedadViewSet,
+    basename="titulo-descripcion",
+)
 
 urlpatterns = [
     path("", include(router.urls)),
