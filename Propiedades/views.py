@@ -66,6 +66,12 @@ class PropiedadListView(ListAPIView):
         "precio_dolares",
     ]
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated:
+            return Propiedad.objects.filter(dueño=user)
+        return Propiedad.objects.none()
+
 
 class PropiedadTiposViewSet(viewsets.ModelViewSet):
     queryset = Propiedad.objects.all()
