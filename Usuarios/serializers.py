@@ -1,6 +1,7 @@
+from os import write
 from rest_framework import serializers
 from Planes.models import Plan
-from .models import PerfilInmobiliaria, PerfilParticular, User
+from .models import PerfilEmpleado, PerfilInmobiliaria, PerfilParticular, User
 from django.db.transaction import atomic
 from django.contrib.auth import authenticate
 from rest_framework.exceptions import AuthenticationFailed
@@ -39,6 +40,7 @@ class RegistrarUsuarioParticularSerializer(serializers.ModelSerializer):
             "nombres",
             "apellidos",
             "contraseña",
+            "is_inmobiliaria",
             "confirmar_contraseña",
             "perfil",
             "access",
@@ -85,6 +87,7 @@ class RegistrarUsuarioParticularSerializer(serializers.ModelSerializer):
                 "email": user.email,
                 "nombres": user.nombres,
                 "apellidos": user.apellidos,
+                "is_inmobiliaria": user.is_inmobiliaria,
                 "access": str(token["access"]),
                 "refresh": str(token["refresh"]),
             }
@@ -118,6 +121,7 @@ class RegistrarUsuarioInmobiliariaSerializer(serializers.ModelSerializer):
             "nombres",
             "apellidos",
             "contraseña",
+            "is_inmobiliaria",
             "confirmar_contraseña",
             "perfil",
             "access",
@@ -166,6 +170,7 @@ class RegistrarUsuarioInmobiliariaSerializer(serializers.ModelSerializer):
                 "email": user.email,
                 "nombres": user.nombres,
                 "apellidos": user.apellidos,
+                "is_inmobiliaria": user.is_inmobiliaria,
                 "access": str(token["access"]),
                 "refresh": str(token["refresh"]),
             }
@@ -183,7 +188,15 @@ class IniciarSesionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["email", "contraseña", "nombres", "apellidos", "access", "refresh"]
+        fields = [
+            "email",
+            "contraseña",
+            "nombres",
+            "apellidos",
+            "is_inmobiliaria",
+            "access",
+            "refresh",
+        ]
 
     def validate(self, attrs):
         email = attrs.get("email")
@@ -198,6 +211,7 @@ class IniciarSesionSerializer(serializers.ModelSerializer):
             "email": user.email,
             "nombres": user.nombres,
             "apellidos": user.apellidos,
+            "is_inmobiliaria": user.is_inmobiliaria,
             "access": str(token["access"]),
             "refresh": str(token["refresh"]),
         }
@@ -291,3 +305,126 @@ class CerrarSesionSerializer(serializers.Serializer):
             RefreshToken(self.token).blacklist()
         except TokenError:
             self.fail("bad_token")
+
+
+class PerfilEmpleadoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PerfilParticular
+        fields = ["dni", "telefono"]
+
+
+class RegistrarUsuarioEmpleadoSerializer(serializers.ModelSerializer):
+    contraseña = serializers.CharField(max_length=68, min_length=8, write_only=True)
+    confirmar_contraseña = serializers.CharField(
+        max_length=68, min_length=8, write_only=True
+    )
+    perfil = PerfilEmpleadoSerializer(
+        source="perfil_empleado", many=False, write_only=True
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            "email",
+            "nombres",
+            "apellidos",
+            "contraseña",
+            "confirmar_contraseña",
+            "perfil",
+        ]
+
+    def validate(self, attrs):
+        if attrs["contraseña"] != attrs["confirmar_contraseña"]:
+            raise serializers.ValidationError(
+                {"contraseña": "Las contraseñas no coinciden."}
+            )
+        return super().validate(attrs)
+
+    @atomic
+    def create(self, validated_data):
+        dueño: User = self.context.get("request").user
+        if not hasattr(dueño, "perfil_inmobiliaria"):
+            raise serializers.ValidationError(
+                {"detail": "El usuario no tiene un perfil de inmobiliaria."}
+            )
+        if (
+            dueño.perfil_inmobiliaria.plan.num_empleados
+            <= dueño.perfil_inmobiliaria.empleados.count()
+        ):
+            raise serializers.ValidationError(
+                {"detail": "Ha alcanzado el límite de empleados."}
+            )
+        perfil = validated_data.pop("perfil_empleado", {})
+        try:
+            user = User.objects.create(
+                email=validated_data["email"],
+                nombres=validated_data["nombres"],
+                apellidos=validated_data["apellidos"],
+            )
+            user.set_password(validated_data["contraseña"])
+            user.save()
+            PerfilEmpleado.objects.create(
+                usuario=user,
+                dni=perfil.get("dni"),
+                telefono=perfil.get("telefono"),
+                inmobiliaria=dueño.perfil_inmobiliaria,
+            )
+            return {
+                "email": user.email,
+                "nombres": user.nombres,
+                "apellidos": user.apellidos,
+            }
+        except Exception as e:
+            raise serializers.ValidationError({"detail": str(e)})
+
+
+class EmpleadoSerializer(serializers.ModelSerializer):
+    # contraseña = serializers.CharField(max_length=68, min_length=8, write_only=True, required=False)
+    # confirmar_contraseña = serializers.CharField(
+    #     max_length=68, min_length=8, write_only=True
+    # )
+    perfil = PerfilEmpleadoSerializer(
+        source="perfil_empleado", many=False, required=False
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "nombres",
+            "apellidos",
+            "is_active",
+            # "contraseña",
+            # "confirmar_contraseña",
+            "perfil",
+        ]
+
+    # def validate(self, attrs):
+    #     if not "contraseña" in attrs and not "confirmar_contraseña" in attrs:
+    #         return super().validate(attrs)
+
+    #     if attrs["contraseña"] != attrs["confirmar_contraseña"]:
+    #         raise serializers.ValidationError(
+    #             {"contraseña": "Las contraseñas no coinciden."}
+    #         )
+    #     return super().validate(attrs)
+
+    @atomic
+    def update(self, instance: User, validated_data: dict) -> User:
+        perfil = validated_data.pop("perfil_empleado", {})
+        try:
+            instance.nombres = validated_data.get("nombres", instance.nombres)
+            instance.apellidos = validated_data.get("apellidos", instance.apellidos)
+            instance.email = validated_data.get("email", instance.email)
+            instance.set_password(validated_data.get("contraseña", instance.password))
+            instance.is_active = validated_data.get("is_active", instance.is_active)
+            instance.save()
+            perfil_empleado = instance.perfil_empleado
+            perfil_empleado.dni = perfil.get("dni", perfil_empleado.dni)
+            perfil_empleado.telefono = perfil.get("telefono", perfil_empleado.telefono)
+            perfil_empleado.save()
+            return instance
+        except Exception as e:
+            raise serializers.ValidationError({"detail": str(e)})

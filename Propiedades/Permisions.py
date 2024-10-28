@@ -8,7 +8,15 @@ from Planes.models import Plan
 
 class IsDueño(BasePermission):
     def has_object_permission(self, request, view, obj: Propiedad):
-        return obj.dueño == request.user
+        user: User = request.user
+        dueño: User = obj.dueño
+
+        if hasattr(dueño, "perfil_inmobiliaria"):
+            return user == dueño
+        if hasattr(dueño, "perfil_particular"):
+            return user == dueño
+        if hasattr(dueño, "perfil_empleado"):
+            return user == dueño or user == dueño.inmobiliaria.dueño
 
 
 class IsDueñoAviso(BasePermission):
@@ -24,17 +32,18 @@ class maxPropiedades(BasePermission):
         user: User = request.user
         if hasattr(user, "perfil_particular"):
             return (
-                user.perfil_particular.plan.num_propiedades > user.propiedades.count()
+                user.perfil_particular.plan.num_propiedades >= user.propiedades.count()
             )
 
-        if hasattr(user, "is_inmobiliaria") and user.is_inmobiliaria:
+        if hasattr(user, "perfil_inmobiliaria") and user.is_inmobiliaria:
             return (
-                user.perfil_inmobiliaria.plan.num_propiedades > user.propiedades.count()
+                user.perfil_inmobiliaria.plan.num_propiedades
+                >= user.propiedades.count()
             )
 
         if hasattr(user, "perfil_empleado"):
             return (
                 user.perfil_empleado.inmobiliaria.plan.num_propiedades
-                > user.propiedades.count()
+                >= user.propiedades.count()
             )
         return False

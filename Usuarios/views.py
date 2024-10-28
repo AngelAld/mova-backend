@@ -1,6 +1,9 @@
 from Usuarios.models import OneTimePassword, User
+from Usuarios.permissions import IsOwnerInmobiliaria, maxEmpleadosPermission
 from Usuarios.utils import enviarCorreoVerificacion
 from .serializers import (
+    EmpleadoSerializer,
+    RegistrarUsuarioEmpleadoSerializer,
     RegistrarUsuarioInmobiliariaSerializer,
     RegistrarUsuarioParticularSerializer,
     IniciarSesionSerializer,
@@ -8,13 +11,20 @@ from .serializers import (
     CambiarContraseñaSerializer,
     CerrarSesionSerializer,
 )
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import (
+    GenericAPIView,
+    ListAPIView,
+    DestroyAPIView,
+    CreateAPIView,
+    RetrieveUpdateAPIView,
+)
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import smart_str, DjangoUnicodeDecodeError
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from rest_framework.pagination import LimitOffsetPagination
 
 
 class RegistrarUsuarioParticularView(GenericAPIView):
@@ -52,6 +62,74 @@ class RegistrarUsuarioInmobiliariaView(GenericAPIView):
                 "data": user,
             },
             status=status.HTTP_201_CREATED,
+        )
+
+
+class RegistrarUsuarioEmpleadoView(CreateAPIView):
+    permission_classes = [IsAuthenticated, maxEmpleadosPermission]
+    serializer_class = RegistrarUsuarioEmpleadoSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user = serializer.data
+        return Response(
+            {
+                "message": "Usuario creado exitosamente",
+                "data": user,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class ActualizarEmpleadoView(RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated, IsOwnerInmobiliaria]
+    serializer_class = EmpleadoSerializer
+    queryset = User.objects.all()
+
+    def get_queryset(self):
+        user: User = self.request.user
+        return User.objects.filter(
+            perfil_empleado__inmobiliaria=user.perfil_inmobiliaria
+        )
+
+    def get_object(self):
+        user: User = self.request.user
+        return User.objects.get(
+            id=self.kwargs["pk"], perfil_empleado__inmobiliaria=user.perfil_inmobiliaria
+        )
+
+
+class DestroyEmpleadoView(DestroyAPIView):
+    permission_classes = [IsOwnerInmobiliaria]
+    serializer_class = EmpleadoSerializer
+    queryset = User.objects.all()
+
+    # def get_queryset(self):
+    #     user: User = self.request.user
+    #     return User.objects.filter(
+    #         perfil_empleado__inmobiliaria=user.perfil_inmobiliaria
+    #     )
+
+    # def get_object(self):
+    #     user: User = self.request.user
+    #     return User.objects.get(
+    #         id=self.kwargs["pk"], perfil_empleado__inmobiliaria=user.perfil_inmobiliaria
+    #     )
+
+
+class ListaEmpleadosView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EmpleadoSerializer
+    queryset = User.objects.all()
+    pagination_class = LimitOffsetPagination
+    # filter_backends = [SearchFilter]
+
+    def get_queryset(self):
+        user: User = self.request.user
+        return User.objects.filter(
+            perfil_empleado__inmobiliaria=user.perfil_inmobiliaria
         )
 
 

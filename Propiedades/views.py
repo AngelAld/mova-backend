@@ -1,3 +1,4 @@
+from Usuarios.models import User
 from .serializers import (
     PropiedadTiposSerializer,
     PropiedadListSerializer,
@@ -26,7 +27,6 @@ from rest_framework.generics import ListAPIView, DestroyAPIView
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 
 class TipoPropiedadListView(ListAPIView):
@@ -68,10 +68,20 @@ class PropiedadListView(ListAPIView):
     ]
 
     def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated:
-            return Propiedad.objects.filter(dueño=user)
-        return Propiedad.objects.none()
+        user: User = self.request.user
+
+        if not user.is_authenticated:
+            return Propiedad.objects.none()
+
+        queryset = Propiedad.objects.filter(dueño=user)
+
+        if hasattr(user, "perfil_inmobiliaria"):
+
+            queryset |= Propiedad.objects.filter(
+                dueño__perfil_empleado__inmobiliaria=user.perfil_inmobiliaria
+            )
+
+        return queryset
 
 
 class PropiedadTiposViewSet(viewsets.ModelViewSet):

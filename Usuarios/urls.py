@@ -1,5 +1,9 @@
 from django.urls import path
 from .views import (
+    ListaEmpleadosView,
+    RegistrarUsuarioEmpleadoView,
+    ActualizarEmpleadoView,
+    DestroyEmpleadoView,
     RegistrarUsuarioParticularView,
     RegistrarUsuarioInmobiliariaView,
     VerificarEmail,
@@ -16,6 +20,10 @@ from rest_framework_simplejwt.views import TokenRefreshView
 urlpatterns = [
     path("registrarse-particular/", RegistrarUsuarioParticularView.as_view()),
     path("registrarse-inmobiliaria/", RegistrarUsuarioInmobiliariaView.as_view()),
+    path("empleados/lista/", ListaEmpleadosView.as_view()),
+    path("empleado/nuevo/", RegistrarUsuarioEmpleadoView.as_view()),
+    path("empleado/<int:pk>/", ActualizarEmpleadoView.as_view()),
+    path("empleado/<int:pk>/", DestroyEmpleadoView.as_view()),
     path("verificar-email/", VerificarEmail.as_view()),
     path("reenviar-email/", ReenviarEmail.as_view()),
     path("iniciar-sesion/", IniciarSesion.as_view()),

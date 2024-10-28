@@ -17,8 +17,8 @@ class Command(BaseCommand):
         failed_distritos = 0
         # Carga de departamentos
         with open(
-            # "Ubicacion\\management\\commands\\Ubicacion.csv", encoding="utf-8"
-            "Ubicacion/management/commands/Ubicacion.csv",
+            # "Ubicacion\\management\\commands\\Ubicacion.csv", encoding="utf-8"            # Windows
+            "Ubicacion/management/commands/Ubicacion.csv",  #                               # Linux
             encoding="utf-8",
         ) as csvfile:
             self.stdout.write(
