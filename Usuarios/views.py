@@ -102,21 +102,21 @@ class ActualizarEmpleadoView(RetrieveUpdateAPIView):
 
 
 class DestroyEmpleadoView(DestroyAPIView):
-    permission_classes = [IsOwnerInmobiliaria]
+    permission_classes = [IsAuthenticated, IsOwnerInmobiliaria]
     serializer_class = EmpleadoSerializer
     queryset = User.objects.all()
 
-    # def get_queryset(self):
-    #     user: User = self.request.user
-    #     return User.objects.filter(
-    #         perfil_empleado__inmobiliaria=user.perfil_inmobiliaria
-    #     )
+    def get_queryset(self):
+        user: User = self.request.user
+        return User.objects.filter(
+            perfil_empleado__inmobiliaria=user.perfil_inmobiliaria
+        )
 
-    # def get_object(self):
-    #     user: User = self.request.user
-    #     return User.objects.get(
-    #         id=self.kwargs["pk"], perfil_empleado__inmobiliaria=user.perfil_inmobiliaria
-    #     )
+    def get_object(self):
+        user: User = self.request.user
+        return User.objects.get(
+            id=self.kwargs["pk"], perfil_empleado__inmobiliaria=user.perfil_inmobiliaria
+        )
 
 
 class ListaEmpleadosView(ListAPIView):
@@ -245,4 +245,21 @@ class CerrarSesion(GenericAPIView):
         serializer.save()
         return Response(
             status=status.HTTP_204_NO_CONTENT,
+        )
+
+
+class InfoEmpleados(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user: User = request.user
+        empleados = user.perfil_inmobiliaria.empleados.count()
+        max_empleados = user.perfil_inmobiliaria.plan.num_empleados
+
+        return Response(
+            {
+                "empleados": empleados,
+                "max_empleados": max_empleados,
+            },
+            status=status.HTTP_200_OK,
         )
