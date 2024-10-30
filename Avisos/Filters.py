@@ -18,6 +18,11 @@ class AvisoFilter(FilterSet):
     propiedad__mantenimiento = RangeFilter()
     # fecha_actualizacion = DateFromToRangeFilter()
     propiedad__caracteristicas = CharFilter(method="filter_caracteristicas")
+    propiedad__ubicacion__distrito = CharFilter(method="filter_distrito")
+    propiedad__ubicacion__distrito__provincia = CharFilter(method="filter_provincia")
+    propiedad__ubicacion__distrito__provincia__departamento = CharFilter(
+        method="filter_departamento"
+    )
 
     class Meta:
         model = Aviso
@@ -52,3 +57,22 @@ class AvisoFilter(FilterSet):
         )
         filtered_queryset = queryset.filter(num_caracteristicas=len(pks)).distinct()
         return filtered_queryset
+
+    def filter_distrito(self, queryset, name, value):
+        pks = value.split(",")
+        queryset = queryset.filter(propiedad__ubicacion__distrito__pk__in=pks)
+        return queryset
+
+    def filter_provincia(self, queryset, name, value):
+        pks = value.split(",")
+        queryset = queryset.filter(
+            propiedad__ubicacion__distrito__provincia__pk__in=pks
+        )
+        return queryset
+
+    def filter_departamento(self, queryset, name, value):
+        pks = value.split(",")
+        queryset = queryset.filter(
+            propiedad__ubicacion__distrito__provincia__departamento__pk__in=pks
+        )
+        return queryset
