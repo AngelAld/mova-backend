@@ -10,5 +10,5 @@ class GoogleIniciarSesionView(GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data["access"]
+        data = serializer.validated_data
         return Response(data, status=status.HTTP_200_OK)

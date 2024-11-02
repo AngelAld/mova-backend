@@ -1,3 +1,4 @@
+from re import S
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from Usuarios.models import User
@@ -11,6 +12,7 @@ class Google:
     def validar(access):
         try:
             id_info = id_token.verify_oauth2_token(access, requests.Request())
+
             if "accounts.google.com" in id_info["iss"]:
                 return id_info
         except Exception as e:
@@ -47,6 +49,8 @@ def registrarUsuarioGoogle(provider, email, nombres, apellidos):
             apellidos=apellidos,
             provider=provider,
             password=settings.SOCIAL_AUTH_PASSWORD,
+            is_verified=True,
+            is_active=True,
         )
         user = iniciarSesion(email=email, password=settings.SOCIAL_AUTH_PASSWORD)
         return user
